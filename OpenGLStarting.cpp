@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <math.h>
 // incase of resizing window glViewPort should resize
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);  
 void processInput(GLFWwindow* window);
@@ -17,9 +18,10 @@ const char *vertexShaderSource =
 const char *fragmentShaderSource = 
         "#version 330 core\n"
         "out vec4 FragColor;\n"
+        "uniform vec4 ourColor;\n"
         "void main()\n"
         "{\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "   FragColor = ourColor;\n"
         "}\0";
 
 
@@ -141,13 +143,6 @@ int main()
     glEnableVertexAttribArray(0);
 
 
-
-    // wire frame mode
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    // fill mode
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-
     ////// render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -158,16 +153,21 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         // the triangle
 
-        // render stuff 
+       // render stuff 
         glUseProgram(shaderProgram);
+
+        //working with shaders uniform variable
+        float timeValue = glfwGetTime();
+        float green = sin(timeValue)/ 2.0f +0.5f;
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0f, green, 0.0f, 0.8f);
+
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
         
-
-        // if any events are triggered (like keyboard input or mouse movement 
-        //events), updates the window state, and calls the corresponding 
-        //functions (which we can register via callback methods)
+        //Input event 
         glfwPollEvents();
         //will swap the color buffer
         glfwSwapBuffers(window);
