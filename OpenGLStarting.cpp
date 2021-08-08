@@ -49,6 +49,7 @@ int main()
     // ------------------------------------
     Shader shaderProgram("Shaders/verShader330", "Shaders/fregShader330"); 
     
+    
     float vertices[] = {
         // vetices            //color
          0.0f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 
@@ -91,8 +92,13 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         // the triangle
 
-       // render stuff 
+        //offseting triangle using a uniform variable
+        float offset = 0.5;
+        shaderProgram.setFloat("offset", offset);
+        // render stuff 
         shaderProgram.use();
+        
+        
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
