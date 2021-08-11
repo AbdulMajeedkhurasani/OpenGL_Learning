@@ -29,6 +29,8 @@ public:
     
     // ------------------------------------------------------------------------
     void setFloat(const std::string &name, float value) const;
+
+    void setMat4(const std::string &name,  GLfloat * value) const;
     
 
 private:
