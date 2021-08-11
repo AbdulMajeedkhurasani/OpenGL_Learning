@@ -171,13 +171,14 @@ int main()
     shaderProgram.setInt("texture1", 1);
 
     //-------------------------transform to 3D
-    
+
     glm::mat4 view = glm::mat4(1.0f);
     // note that we're translating the scene in the reverse direction of where we want to move
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    view = glm::translate(view, glm::vec3(0.5f, 0.3f, -3.0f));
+    view = glm::rotate(view, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
     glm::mat4 projection;
-    projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(60.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
     glEnable(GL_DEPTH_TEST);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -202,11 +203,14 @@ int main()
         glBindVertexArray(VAO);
         for (unsigned int i = 0; i < 10; i++)
         {
+            // calculate the model matrix for each object and pass it to shader before drawing
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f *(i + 1)* glfwGetTime();
+            float angle = 20.0f * i;
+            if (i % 3 == 0) // every 3rd iteration (including the first) we set the angle using GLFW's time function.
+                angle = glfwGetTime() * 25.0f;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            shaderProgram.setMat4("model", glm::value_ptr(model));
+            shaderProgram.setMat4("model", &model[0][0]);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
