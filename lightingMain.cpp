@@ -78,7 +78,7 @@ int main()
 
     // build and compile our shader zprogram
     // ------------------------------------
-    Shader lightingShader ("Shaders/lightingShader.vr", "Shaders/lightingShader.fr");
+    Shader lightingShader ("Shaders/lightingShader.vs", "Shaders/lightingShader.fs");
     Shader lightCubeShader ("Shaders/lightShader.vr", "Shaders/lightShader.fr");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
@@ -156,11 +156,15 @@ int main()
     // load textures (we now use a utility function to keep the code more organized)
     // -----------------------------------------------------------------------------
     unsigned int diffuseMap = loadTexture("resources/textures/container2.png");
+    unsigned int specularMap = loadTexture("resources/textures/container2_specular.png");
+    unsigned int emissionMap = loadTexture("resources/textures/matrix.jpg");
 
     // shader configuration
     // --------------------
     lightingShader.use(); 
     lightingShader.setInt("material.diffuse", 0);
+    lightingShader.setInt("material.specular", 1);
+     lightingShader.setInt("material.emission", 2);
 
 
     // render loop
@@ -193,7 +197,6 @@ int main()
         lightingShader.setVec3("light.specular", &glm::vec3(1.0f)[0]);
 
         // material properties
-        lightingShader.setVec3("material.specular", &glm::vec3(0.5f, 0.5f, 0.5f)[0]);
         lightingShader.setFloat("material.shininess", 64.0f);
 
         // view/projection transformations
@@ -209,6 +212,12 @@ int main()
         // bind diffuse map
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, emissionMap);
 
         // render the cube
         glBindVertexArray(cubeVAO);
