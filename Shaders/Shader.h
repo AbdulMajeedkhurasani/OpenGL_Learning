@@ -32,6 +32,7 @@ public:
 
     void setMat4(const std::string &name,  GLfloat * value) const;
     
+    void setVec3(const std::string &name,  GLfloat * value) const;
 
 private:
     // utility function for checking shader compilation/linking errors.
