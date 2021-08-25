@@ -79,7 +79,8 @@ int main()
 
     // build and compile shaders
     // -------------------------
-    Shader ourShader("Shaders/1.model_loading.vs", "Shaders/1.model_loading.fs");
+    Shader ourShader("Shaders/1.model_loading.vs", "Shaders/1.model_loading.fs");  ///for point lighting
+    //Shader ourShader("Shaders/1.model_loading.vs", "Shaders/1.model_loadingDirLight.fs");    ///for direction lighting
 
     // load models
     // -----------
@@ -114,17 +115,18 @@ int main()
 
         // light properties
         ourShader.setVec3("light.position", 2.0f,2.0f,2.0f);
+        ourShader.setVec3("light.direction", -1.0,-3.0,-3.0);
        
         ourShader.setVec3("light.ambient",  glm::vec3(0.1f)); 
         ourShader.setVec3("light.diffuse",  glm::vec3(1.0f));
-        ourShader.setVec3("light.specular", glm::vec3(0.2f));
+        ourShader.setVec3("light.specular", glm::vec3(0.5f));
 
         ourShader.setFloat("light.constant", 1.0f);
         ourShader.setFloat("light.linear", 0.011f);
         ourShader.setFloat("light.quadratic", 0.0004f);
 
         // material properties
-        ourShader.setFloat("material.shininess", 128.0f);
+        ourShader.setFloat("shininess", 128.0f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
