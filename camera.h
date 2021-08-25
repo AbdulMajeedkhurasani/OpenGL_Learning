@@ -20,8 +20,8 @@ enum Camera_Movement {
 // Default camera values
 const float YAW         = -90.0f;
 const float PITCH       =  0.0f;
-const float SPEED       =  2.5f;
-const float SENSITIVITY =  0.1f;
+const float SPEED       =  5.f;
+const float SENSITIVITY =  0.2f;
 const float ZOOM        =  45.0f;
 
 
@@ -81,7 +81,7 @@ public:
         if (direction == RIGHT)
             Position += Right * velocity;
             // make sure the user stays at the ground level
-        Position.y = 0.0f; // <-- this one-liner keeps the user at the ground level (xz plane)
+        //Position.y = 0.0f; // <-- this one-liner keeps the user at the ground level (xz plane)
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
