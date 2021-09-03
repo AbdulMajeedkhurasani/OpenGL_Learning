@@ -43,6 +43,7 @@ int main()
     // configure global opengl state
     glEnable(GL_DEPTH_TEST);
     
+    
     Shader skyboxShader("Shaders/cubeMaps.vs", "Shaders/cubeMaps.fs");
     Shader shader   ("Shaders/1.1.depth_testing.vs", "Shaders/blending.fs");
     
@@ -177,25 +178,15 @@ int main()
         // render
         
         // make sure we clear the framebuffer's content
-        glClearColor(0.6f, 0.8f, 0.92f, 1.0f);;
+        //glClearColor(0.6f, 0.8f, 0.92f, 1.0f);;
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glDepthMask(GL_FALSE);
-        skyboxShader.use();
         
-        glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        skyboxShader.setMat4("view", view);
-        skyboxShader.setMat4("projection", projection);
-        glBindVertexArray(skyboxVAO);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glDepthMask(GL_TRUE);
 
         shader.use();
         glm::mat4 model = glm::mat4(1.0f);
-        view = camera.GetViewMatrix();
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
         // cube
@@ -206,6 +197,16 @@ int main()
         shader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
+        glDepthFunc(GL_EQUAL);
+        skyboxShader.use();
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        skyboxShader.setMat4("view", view);
+        skyboxShader.setMat4("projection", projection);
+        glBindVertexArray(skyboxVAO);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDepthFunc(GL_LESS);
         
 
         glfwSwapBuffers(window);

@@ -9,5 +9,6 @@ uniform mat4 projection;
 void main()
 {
     TexCoords = aPos;    
-    gl_Position = projection * view * vec4(aPos, 1.0);
+    // giving skybox a depth of 1.0 always
+    gl_Position = (projection * view * vec4(aPos, 1.0)).xyww;
 }
