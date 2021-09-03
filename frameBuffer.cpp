@@ -4,6 +4,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Shaders/Shader2.h"
 #include "camera.h"
@@ -100,15 +101,15 @@ int main()
         };
 
     float quadVertices[] = {
-    // positions   // texCoords
-    -1.0f,  1.0f,  0.0f, 1.0f,
-    -1.0f, -1.0f,  0.0f, 0.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+        1.0f, -1.0f,  1.0f, 0.0f,
 
-    -1.0f,  1.0f,  0.0f, 1.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
-     1.0f,  1.0f,  1.0f, 1.0f
-};
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        1.0f, -1.0f,  1.0f, 0.0f,
+        1.0f,  1.0f,  1.0f, 1.0f
+    };
 
     unsigned int cubeVAO, cubeVBO, planeVAO, planeVBO, quadVAO, quadVBO;
     buff(&planeVAO, &planeVBO, planeVertices, sizeof(planeVertices));
@@ -127,10 +128,7 @@ int main()
    
     unsigned int cubeTexture  = loadTexture("resources/textures/container.jpg");
     unsigned int floorTexture = loadTexture("resources/textures/metal.png");
-    
-      // Frame buffer
-    
-    
+   
     shader.use();
     shader.setInt("texture1", 0);
     secShader.use();
@@ -138,6 +136,7 @@ int main()
 
     unsigned int fbo, texture, rbo;
     crFrame(&fbo, &rbo, &texture);
+
     while (!glfwWindowShouldClose(window))
     {
         // per-frame time logic
@@ -190,8 +189,17 @@ int main()
         secShader.use();
         glBindVertexArray(quadVAO);
         glBindTexture(GL_TEXTURE_2D, texture);	// use the color attachment texture as the texture of the quad plane
+        model  = glm::mat4(1.0f);
+        secShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
+        model = glm::scale(model, glm::vec3(0.25));
+        model = glm::translate(model,glm::vec3(0.0, 3.0, 0.0));
+        glm::vec3 rotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
+        model = glm::rotate(model, 3.14f, rotAxis);
+        secShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
