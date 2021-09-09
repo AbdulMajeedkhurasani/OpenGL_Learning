@@ -40,6 +40,7 @@ int main()
     
     
     Shader shader("Shaders/asteroid.vs", "Shaders/asteroid.fs");
+    Shader rockShader("Shaders/asteroidInstance.vs", "Shaders/asteroidInstance.fs");
 
     Model planet("/home/abkhu/opengl/source/OpenGL_Learning/resources/objects/planet/planet.obj");
     Model rock("/home/abkhu/opengl/source/OpenGL_Learning/resources/objects/rock/rock.obj");
@@ -47,20 +48,18 @@ int main()
     shader.use();
     // light properties
     shader.setVec3("light.direction", -1.0, -3.0, -3.0);
-
     shader.setVec3("light.ambient", glm::vec3(0.3f));
     shader.setVec3("light.diffuse", glm::vec3(1.0f));
     shader.setVec3("light.specular", glm::vec3(0.5f));
-
     // material properties
     shader.setFloat("shininess", 128.0f);
 
-    unsigned int amount  = 1000;
+    unsigned int amount  = 10000;
     glm::mat4 *modelMatrices;
     modelMatrices = new glm::mat4[amount];
     srand(glfwGetTime()); // initialize random seed
-    float radius = 50.0f;
-    float offset = 2.5f;
+    float radius = 75.0f;
+    float offset = 15.0f;
     for(unsigned int i = 0; i < amount; i++)
     {
         glm::mat4 model = glm::mat4(1.0f);
@@ -86,6 +85,32 @@ int main()
         modelMatrices[i] = model;
     }
 
+    // vertex buffer object
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, amount*sizeof(glm::mat4),&modelMatrices[0], GL_STATIC_DRAW);
+
+    for(unsigned int i = 0; i < rock.meshes.size(); i++)
+    {
+        unsigned int VAO = rock.meshes[i].VAO;
+        glBindVertexArray(VAO);// vertex attribute
+        std::size_t v4s = sizeof(glm::vec4);
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4*v4s, (void*)0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*v4s, (void*)(1*v4s));
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4*v4s, (void*)(2*v4s));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4*v4s, (void*)(3*v4s));
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
+        glBindVertexArray(0);
+    }
+
     while (!glfwWindowShouldClose(window))
     {
         // per-frame time logic
@@ -96,7 +121,7 @@ int main()
         processInput(window);
         // render
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        shader.use();
         shader.setVec3("viewPos", camera.Position);
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -110,11 +135,15 @@ int main()
         shader.setMat4("model", model);
         planet.Draw(shader);
 
+        rockShader.use();
+        // view/projection transformations
+        rockShader.setMat4("projection", projection);
+        rockShader.setMat4("view", view);
         // render the rock
-        for(unsigned int i = 0; i < amount; i++)
+        for(unsigned int i = 0; i < rock.meshes.size(); i++)
         {
-            shader.setMat4("model", modelMatrices[i]);
-            rock.Draw(shader);
+            glBindVertexArray(rock.meshes[i].VAO);
+            glDrawElementsInstanced(GL_TRIANGLES, rock.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, amount);
         }
 
         glfwSwapBuffers(window);
