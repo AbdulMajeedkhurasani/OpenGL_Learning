@@ -43,6 +43,10 @@ class Game
         void ProcessInput(float dt);
         void Update(float dt);
         void Render();
+        // collision 
+        void DoCollisions();
+    private:
+        bool CheckRectangularCollision(GameObject &one, GameObject &two);// AABB - AABB
 };
 
 #endif

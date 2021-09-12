@@ -122,6 +122,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         else if (action == GLFW_RELEASE)
             Breakout.Keys[key] = false;
     }
+    if (key == GLFW_KEY_0 && action == GLFW_PRESS)
+    {
+        Breakout.Init();
+    }
+    
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

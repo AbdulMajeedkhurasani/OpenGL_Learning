@@ -1,3 +1,5 @@
+#define PB(a) push_back(a)
+
 #include "Game.h"
 #include "includes/Utiliy/resource_manager.h"
 #include "includes/Utiliy/texture.h"
@@ -45,10 +47,10 @@ void Game::Init()
     GameLevel two; two.Load("resources/levels/two.lvl", this->Width, this->Height / 2);
     GameLevel three; three.Load("resources/levels/three.lvl", this->Width, this->Height / 2);
     GameLevel four; four.Load("resources/levels/four.lvl", this->Width, this->Height / 2);
-    this->Levels.push_back(one);
-    this->Levels.push_back(two);
-    this->Levels.push_back(three);
-    this->Levels.push_back(four);
+    this->Levels.PB(one);
+    this->Levels.PB(two);
+    this->Levels.PB(three);
+    this->Levels.PB(four);
     this->Level = 0;
     // configure Player objects
     glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
@@ -60,7 +62,10 @@ void Game::Init()
 
 void Game::Update(float dt)
 {
+    // Update ball object
     Ball->Move(dt, Width);
+    // check for collisions
+    this->DoCollisions();
 }
 
 void Game::ProcessInput(float dt)
@@ -106,4 +111,38 @@ void Game::Render()
         Player->Draw(*Renderer);
         Ball->Draw(*Renderer);
     }
+}
+
+void Game::DoCollisions()
+{
+    for (GameObject &box : Levels[Level].Bricks)
+    {
+        if (!box.Destroyed)
+        {
+            if (this->CheckRectangularCollision(*Ball, box))
+            {
+                if(!box.IsSolid)
+                    box.Destroyed = true;
+            }
+        }
+        
+    }
+    if (this->CheckRectangularCollision(*Ball, *Player))
+    {
+        Ball->Velocity.y = -Ball->Velocity.y;
+        //Ball->Velocity.x = -(Ball->Velocity.x + abs(Ball->Position.x - Player->Position.x)) / 2;
+    }
+    
+}
+
+bool Game::CheckRectangularCollision(GameObject &one, GameObject &two)
+{
+    // collision x-axis?
+    bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
+                      two.Position.x + two.Size.x >= one.Position.x;
+    // collision y-axis?
+    bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
+                      two.Position.y + two.Size.y >= one.Position.y;
+    // collision only if on both axes
+    return collisionX && collisionY;
 }
