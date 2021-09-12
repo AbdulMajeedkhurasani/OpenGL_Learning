@@ -4,7 +4,7 @@
 #include "includes/Utiliy/resource_manager.h"
 #include "includes/Utiliy/texture.h"
 #include "SpriteRenderer.h"
-#include "BallObject.h"
+
 
 
 // Game-related State data
@@ -119,7 +119,7 @@ void Game::DoCollisions()
     {
         if (!box.Destroyed)
         {
-            if (this->CheckRectangularCollision(*Ball, box))
+            if (this->CheckCollision(*Ball, box))
             {
                 if(!box.IsSolid)
                     box.Destroyed = true;
@@ -127,7 +127,7 @@ void Game::DoCollisions()
         }
         
     }
-    if (this->CheckRectangularCollision(*Ball, *Player))
+    if (this->CheckCollision(*Ball, *Player))
     {
         Ball->Velocity.y = -Ball->Velocity.y;
         //Ball->Velocity.x = -(Ball->Velocity.x + abs(Ball->Position.x - Player->Position.x)) / 2;
@@ -135,7 +135,32 @@ void Game::DoCollisions()
     
 }
 
-bool Game::CheckRectangularCollision(GameObject &one, GameObject &two)
+float Game::clamp(float value, float min, float max)
+{
+    return std::max(min, std::min(max, value));
+}
+
+// because there is no information about collision shape/ shape of 
+// object we need to calculate shape of Game object and ball object
+bool Game::CheckCollision(BallObject &one, GameObject &two)
+{
+    // get center point circle first
+    glm::vec2 center(one.Position + one.Radius);
+    // calculate AABB info (center, half-extends)
+    glm::vec2 aabb_half_extends(two.Size / 2.0f);
+    glm::vec2 aabb_center(two.Position + aabb_half_extends);
+    // get differece vector between both centers
+    glm::vec2 difference = center - aabb_center;
+    glm::vec2 clamped = glm::clamp(difference, -aabb_half_extends, aabb_half_extends);
+    // add clamped value to AABB_center and get the value closest to circle
+    glm::vec2 closest = aabb_center + clamped;
+    // vector between center circle and closest and closest point AABB
+    difference = closest - center;
+
+    return glm::length(difference) < one.Radius;
+}
+
+bool Game::CheckCollision(GameObject &one, GameObject &two)
 {
     // collision x-axis?
     bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&

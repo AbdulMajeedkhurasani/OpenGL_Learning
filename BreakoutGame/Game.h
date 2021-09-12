@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include "GameLevel.h"
+#include "BallObject.h"
 
 //represents the current state of the game
 enum GameState
@@ -46,7 +47,11 @@ class Game
         // collision 
         void DoCollisions();
     private:
-        bool CheckRectangularCollision(GameObject &one, GameObject &two);// AABB - AABB
+        float clamp(float value, float min, float max);
+        // circular cullision
+        bool CheckCollision(BallObject &one, GameObject &two);
+        // rectangular collision 
+        bool CheckCollision(GameObject &one, GameObject &two);// AABB - AABB
 };
 
 #endif
