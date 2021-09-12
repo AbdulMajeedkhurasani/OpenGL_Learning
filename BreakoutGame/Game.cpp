@@ -2,11 +2,13 @@
 #include "includes/Utiliy/resource_manager.h"
 #include "includes/Utiliy/texture.h"
 #include "SpriteRenderer.h"
+#include "BallObject.h"
 
 
 // Game-related State data
 SpriteRenderer  *Renderer;
 GameObject *Player;
+BallObject *Ball;
 
 
 Game::Game(unsigned int width, unsigned int height) 
@@ -48,14 +50,17 @@ void Game::Init()
     this->Levels.push_back(three);
     this->Levels.push_back(four);
     this->Level = 0;
-    // configure game objects
+    // configure Player objects
     glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
     Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
+    // configure Ball object
+    glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
+    Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
 }
 
 void Game::Update(float dt)
 {
-    
+    Ball->Move(dt, Width);
 }
 
 void Game::ProcessInput(float dt)
@@ -63,19 +68,29 @@ void Game::ProcessInput(float dt)
     if(this->State == GAME_ACTIVE)
     {
         float velocity = PLAYER_VELOCITY * dt;
-        //move Player
+        //move Player / Move PlayerBoard
         if(this->Keys[GLFW_KEY_A])
         {
             if(Player->Position.x >= 0.0f)
+            {
                 Player->Position.x -= velocity;
+                if (Ball->Stuck)
+                    Ball->Position.x -= velocity;
+                
+            }
         }
         if(this->Keys[GLFW_KEY_D])
         {
             if(Player->Position.x <= (this->Width - Player->Size.x))
+            {
                 Player->Position.x += velocity;
+                if(Ball->Stuck)
+                    Ball->Position.x += velocity;
+            }
         }
+        if(Keys[GLFW_KEY_SPACE])
+            Ball->Stuck = false;
     }
-   
 }
 
 void Game::Render()
@@ -89,7 +104,6 @@ void Game::Render()
         //draw level
         this->Levels[Level].Draw(*Renderer);
         Player->Draw(*Renderer);
+        Ball->Draw(*Renderer);
     }
-    //Texture2D texture = ResourceManager::GetTexture("face");
-    //Renderer->DrawSprite(texture, glm::vec2(200.0f, 200.0f), glm::vec2(300.0f, 400.0f), 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 }
