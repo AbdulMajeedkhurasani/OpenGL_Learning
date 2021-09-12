@@ -74,6 +74,8 @@ int main(int argc, char *argv[])
         glfwSwapBuffers(window);
     }
 
+    std::cout << (1 / deltaTime) << " f/s"  << "\n";
+
     // delete all resources as loaded using the resource manager
     // ---------------------------------------------------------
     ResourceManager::Clear();

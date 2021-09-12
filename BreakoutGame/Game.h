@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <tuple>
 #include "GameLevel.h"
 #include "BallObject.h"
 
@@ -15,6 +16,15 @@ enum GameState
     GAME_WIN
 };
 
+enum Direction 
+{
+    UP,
+    RIGHT,
+    DOWN,
+    LEFT
+};
+
+typedef std::tuple<bool, Direction, glm::vec2> Collision;
 // init size and velocity of player paddle
 const glm::vec2 PLAYER_SIZE(100.0f, 20.0f);
 const float PLAYER_VELOCITY(500.0f);
@@ -49,9 +59,14 @@ class Game
     private:
         float clamp(float value, float min, float max);
         // circular cullision
-        bool CheckCollision(BallObject &one, GameObject &two);
+        Collision CheckCollision(BallObject &one, GameObject &two);
         // rectangular collision 
         bool CheckCollision(GameObject &one, GameObject &two);// AABB - AABB
+        // direction of collision
+        Direction VectorDirection(glm::vec2 target);
+        // reset
+        void ResetLevel();
+        void ResetPlayer();
 };
 
 #endif

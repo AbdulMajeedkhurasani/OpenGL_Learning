@@ -22,6 +22,11 @@ Game::Game(unsigned int width, unsigned int height)
 Game::~Game()
 {
     delete Renderer;
+    // deleting object of polymorphic class type ‘BallObject’ or 'PlayerObject' 
+    //which has non-virtual destructor might cause undefined 
+    //behavior [-Wdelete-non-virtual-dtor]
+    //delete Player;
+    //delete Ball;
 }
 
 void Game::Init()
@@ -51,7 +56,7 @@ void Game::Init()
     this->Levels.PB(two);
     this->Levels.PB(three);
     this->Levels.PB(four);
-    this->Level = 0;
+    this->Level = 2;
     // configure Player objects
     glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
     Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
@@ -66,6 +71,13 @@ void Game::Update(float dt)
     Ball->Move(dt, Width);
     // check for collisions
     this->DoCollisions();
+    // reset if ball reached bottom line
+    if (Ball->Position.y >= this->Height)
+    {
+        this->ResetLevel();
+        this->ResetPlayer();
+    }
+    
 }
 
 void Game::ProcessInput(float dt)
@@ -113,24 +125,80 @@ void Game::Render()
     }
 }
 
+void Game::ResetLevel()
+{
+    if (this->Level == 0)
+        this->Levels[0].Load("resources/levels/one.lvl", this->Width, this->Height / 2);
+    else if (this->Level == 1)
+        this->Levels[1].Load("resources/levels/two.lvl", this->Width, this->Height / 2);
+    else if (this->Level == 2)
+        this->Levels[2].Load("resources/levels/three.lvl", this->Width, this->Height / 2);
+    else if (this->Level == 3)
+        this->Levels[3].Load("resources/levels/four.lvl", this->Width, this->Height / 2);
+}
+
+void Game::ResetPlayer()
+{
+    // reset player/ball stats
+    Player->Size = PLAYER_SIZE;
+    Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
+    Ball->Reset(Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
+}
+
+
 void Game::DoCollisions()
 {
     for (GameObject &box : Levels[Level].Bricks)
     {
         if (!box.Destroyed)
         {
-            if (this->CheckCollision(*Ball, box))
+            Collision collision = CheckCollision(*Ball, box);
+            if (std::get<0>(collision))  // if collision is true
             {
+                // distroy block if not solid
                 if(!box.IsSolid)
                     box.Destroyed = true;
+                // collision resolution
+                Direction dir = std::get<1> (collision);
+                glm::vec2 diffVector = std::get<2>(collision);
+                if(dir == LEFT || dir == RIGHT) // horizontal collition
+                {
+                    Ball->Velocity.x = -Ball->Velocity.x;  // reverse
+                    // relocate 
+                    float penetration =  Ball->Radius - std::abs(diffVector.x);
+                    if(dir == LEFT)
+                        Ball->Position.x += penetration; // move right
+                    else 
+                        Ball->Position.x -= penetration; // move left
+                }
+                else // vertical collision
+                {
+                    Ball->Velocity.y = -Ball->Velocity.y;  // reverse
+                    // relocate
+                    float penetration = Ball->Radius - std::abs(diffVector.y);
+                    if(dir == UP)
+                        Ball->Position.y -= penetration; // move up
+                    else
+                        Ball->Position.y += penetration; // move down
+                }
             }
         }
-        
     }
-    if (this->CheckCollision(*Ball, *Player))
+
+    Collision result = CheckCollision(*Ball, *Player);
+    if (!Ball->Stuck && std::get<0>(result))
     {
-        Ball->Velocity.y = -Ball->Velocity.y;
-        //Ball->Velocity.x = -(Ball->Velocity.x + abs(Ball->Position.x - Player->Position.x)) / 2;
+        // check where it hit the board, and change velocity 
+        float centerBoard = Player->Position.x + Player->Size.x / 2.0f;
+        float distance = (Ball->Position.x + Ball->Radius) - centerBoard;
+        float percentage = distance / (Player->Size.x / 2.0f);
+        // then move accordingly 
+        float strength = 2.0f;
+        glm::vec2 oldVelocity = Ball->Velocity;
+        Ball->Velocity.x = INITIAL_BALL_VELOCITY.x * percentage * strength;
+        //Ball->Velocity.y = -Ball->Velocity.y;
+        Ball->Velocity.y = -1.0f * abs(Ball->Velocity.y);
+        Ball->Velocity   = glm::normalize(Ball->Velocity) * glm::length(oldVelocity);
     }
     
 }
@@ -142,7 +210,8 @@ float Game::clamp(float value, float min, float max)
 
 // because there is no information about collision shape/ shape of 
 // object we need to calculate shape of Game object and ball object
-bool Game::CheckCollision(BallObject &one, GameObject &two)
+// circular collision
+Collision Game::CheckCollision(BallObject &one, GameObject &two)
 {
     // get center point circle first
     glm::vec2 center(one.Position + one.Radius);
@@ -157,9 +226,12 @@ bool Game::CheckCollision(BallObject &one, GameObject &two)
     // vector between center circle and closest and closest point AABB
     difference = closest - center;
 
-    return glm::length(difference) < one.Radius;
+    if(glm::length(difference) <= one.Radius)
+        return std::make_tuple(true, this->VectorDirection(difference), difference);
+    else 
+        return std::make_tuple(false, UP, glm::vec2(0.0f, 0.0f));
 }
-
+// rectangular collision
 bool Game::CheckCollision(GameObject &one, GameObject &two)
 {
     // collision x-axis?
@@ -170,4 +242,26 @@ bool Game::CheckCollision(GameObject &one, GameObject &two)
                       two.Position.y + two.Size.y >= one.Position.y;
     // collision only if on both axes
     return collisionX && collisionY;
+}
+
+Direction Game::VectorDirection(glm::vec2 target)
+{
+    glm::vec2 compass[] = {
+        glm::vec2( 0.0f,  1.0f), // up
+        glm::vec2( 1.0f,  0.0f), // right
+        glm::vec2( 0.0f, -1.0f), // down
+        glm::vec2(-1.0f,  0.0f), // left
+    };
+    float max = 0.0f;
+    unsigned int bestMatch = -1;
+    for(unsigned int i = 0; i < 4; i++)
+    {
+        float dotProduct = glm::dot(glm::normalize(target), compass[i]);
+        if(dotProduct > max)
+        {
+            max = dotProduct;
+            bestMatch = i;
+        }
+    }
+    return (Direction)bestMatch;
 }
