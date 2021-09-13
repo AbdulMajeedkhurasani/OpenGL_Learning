@@ -13,7 +13,7 @@
 #include <glm/glm.hpp>
 
 #include "includes/Utiliy/texture.h"
-#include "SpriteRenderer.h"
+#include "includes/Utiliy/SpriteRenderer.h"
 
 
 // Container object for holding all state relevant for a single

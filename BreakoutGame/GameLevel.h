@@ -14,7 +14,7 @@
 #include <glm/glm.hpp>
 
 #include "GameObject.h"
-#include "SpriteRenderer.h"
+#include "includes/Utiliy/SpriteRenderer.h"
 #include "includes/Utiliy/resource_manager.h"
 
 
