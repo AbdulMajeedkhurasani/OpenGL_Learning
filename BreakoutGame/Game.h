@@ -3,10 +3,12 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <bits/stdc++.h>
 #include <vector>
 #include <tuple>
 #include "GameLevel.h"
 #include "BallObject.h"
+#include "PowerUp.h"
 
 //represents the current state of the game
 enum GameState
@@ -44,6 +46,7 @@ class Game
         unsigned int Width, Height;
         std::vector<GameLevel> Levels;
         unsigned int Level;
+        std::vector<PowerUp> PowerUps;
         //constructor/distructor
         Game(unsigned int width, unsigned int height);
         ~Game();
@@ -68,6 +71,13 @@ class Game
         // reset
         void ResetLevel();
         void ResetPlayer();
+        // power up management
+        void SpawnPowerUps(GameObject &block);
+        void UpdatePowerUps(float dt);
+
+        bool ShouldSpawn(unsigned int chance);
+        void ActivatePowerUp(PowerUp &powerUp);
+
 };
 
 #endif
