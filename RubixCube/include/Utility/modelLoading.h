@@ -18,7 +18,7 @@
 
 using namespace std;
 
-const std::string path = "/home/abkhu/opengl/source/RubixCube-OpenGL/resources/RubixCubeModel/RubixCube.obj";
+const std::string path = "/home/abkhu/opengl/source/OpenGL_Learning/RubixCube/resources/RubixCubeModel/RubixCube.obj";
 
 class ModelLoading 
 {

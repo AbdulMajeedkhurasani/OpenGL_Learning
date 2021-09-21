@@ -3,3 +3,9 @@ dd
 .vscode/c_cpp_properties.json
 BreakoutGame/d
 BreakoutGame/.vscode/settings.json
+RubixCube/src/StanfordQuaternion.h
+RubixCube/src/tmatrix.h
+RubixCube/src/fregShader330
+RubixCube/src/verShader330
+RubixCube/a
+RubixCube/a
